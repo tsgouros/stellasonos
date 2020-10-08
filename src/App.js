@@ -1,24 +1,22 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useRef } from 'react';
 import './App.css';
+import {useWindowSize} from './hooks';
 
-function App() {
+function App() { 
+  const canvasRef = useRef(undefined);
+  const [width, height] = useWindowSize();
+  
+  useEffect(() => {
+    const image = new Image()
+    image.onload = () => {
+      canvasRef.current.getContext("2d").drawImage(image, 0, 0)
+    }
+    image.src = "logo512.png"
+  }, [width, height])
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <canvas ref={canvasRef} width={width} height={height}/>
     </div>
   );
 }
