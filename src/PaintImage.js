@@ -1,16 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 
 export default (props) => {
-    const {
-        touchPosition: {
-            x = 0,
-            y = 0,
-        } = {},
-        isPositionOutside = true,
-        isActive = false
-    } = props;
 
     const canvasRef = useRef(undefined);
+    const y = props.touchPosition.y;
 
     useEffect(() => {
         if(canvasRef.current) {
