@@ -12,7 +12,7 @@ export default function App() {
   const [isLoaded, setLoaded] = useState(false);
   
   useEffect(()=>{
-    player.current = new Tone.Player("galactic_all.mp3", 
+    player.current = new Tone.Player("/galactic_all.mp3", 
     () => {
       setLoaded(true);
     }).toDestination();
