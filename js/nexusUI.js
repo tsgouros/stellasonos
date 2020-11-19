@@ -249,7 +249,6 @@ The "output" instructions for sending a widget's data to another application or 
 */
 
 manager.prototype.transmit = function(data, passive) {
-  //console.log(passive + " manager.transmit")
     this.makeOSC(this.emit, data, passive);
     this.emit('*',data, passive);
 } 
@@ -3639,7 +3638,6 @@ matrix.prototype.sequence = function(bpm) {
 
 matrix.prototype.setBPM = function(bpm) {
 	this.bpm = bpm
-	//console.log(bpm)
 	//nx.interval.bpm(this.pulse,bpm)
 }
 
