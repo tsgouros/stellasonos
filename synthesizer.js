@@ -33,20 +33,6 @@ class Synthesizer {
 	getCurrTime() {
 		return this.ctx.currentTime;
 	}
-	
-	playNote(index, gainVal) {
-		var osc = this.ctx.createOscillator();
-		osc.type = 'sine';
-		osc.frequency.value = this.frequencies[this.frequencies.length - 1 - index];
-		var gain = this.ctx.createGain();
-		gain.connect(this.compressor);
-		gain.gain.value = 0;
-		osc.connect(gain);
-		gain.gain.linearRampToValueAtTime(gainVal, this.ctx.currentTime + 0.1);
-		gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.8);
-		osc.start();
-		osc.stop(this.ctx.currentTime + 0.8);
-	}
 
 	updateGains(gainVals) {
 		for (var i = 0; i < gainVals.length; i++) {
@@ -57,13 +43,6 @@ class Synthesizer {
 			}
 		}
 		this.prevTime = this.ctx.currentTime;
-	}
-
-	endSynth() {
-		for (var i = 0; i < this.oscillators.length; i++) {
-			this.oscillators[i].gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.8);
-			this.oscillators[i].osc.stop(this.ctx.currentTime + 0.8);
-		}
 	}
 }
 
