@@ -23,7 +23,6 @@ class Synthesizer {
 
 	resumeAudioContext() {
 		this.ctx.resume();
-		console.log(this.ctx)
 		this.prevTime = this.ctx.currentTime;
 	}
 
@@ -33,19 +32,6 @@ class Synthesizer {
 
 	getCurrTime() {
 		return this.ctx.currentTime;
-	}
-
-	suspendAudioContext() {
-		console.log("suspende")
-		if (this.ctx.suspend) {
-		  this.ctx.suspend();
-		} else {
-		  var gainVals = [];
-		  for (var i = 0; i < settings.scale.numSteps; i++) {
-			gainVals[i] = 0;
-		  }
-		  this.updateGains(gainVals);
-		}
 	}
 	
 	playNote(index, gainVal) {

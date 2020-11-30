@@ -1,5 +1,5 @@
 class ImageCanvas {
-	constructor(handlePlay){
+	constructor(){
 		//output canvas
 		this.canvas = document.createElement("canvas");
 		this.canvas.width = window.innerWidth;
@@ -7,156 +7,36 @@ class ImageCanvas {
 		this.canvas.style.position = "fixed";
 		this.canvas.style.top = "0px";
 		this.canvas.style.left = "0px";
-		this.handlePlay = handlePlay;
-
-		//filtered image
-		this.filterCanvas = document.createElement("canvas");
-		this.filterCanvas.width = window.innerWidth;
-		this.filterCanvas.height = window.innerHeight;
-		this.filterCtx = this.filterCanvas.getContext('2d');
 
 		this.ctx = this.canvas.getContext('2d');
 		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		document.body.appendChild(this.canvas);
 		this.loadImage("./images/nightsky.jpg");
-	}
 
-	clearImage() {
-		this.ctx.globalCompositeOperation = "source-over";
-
-		this.filterCtx.fillStyle = "rgb(0, 0, 0)";
-		this.filterCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		this.ctx.fillStyle = "rgb(0, 0, 0)";
-		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		this.data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-		//Data of what is currently being displayed
-		this.imageData = this.data.data;
-		//data of original image
-		this.originalData = [];
-		for (var i = 0; i < this.data.data.length; i++) {
-			this.originalData[i] = this.data.data[i];
-		}
+		window.addEventListener("resize", () => {
+			this.canvas.width = window.innerWidth;
+			this.canvas.height = window.innerHeight;
+			this.ctx.drawImage(this.img, 0, 0, this.canvas.width, this.canvas.height);
+			this.setImageData();
+		});
 	}
 
 	loadImage(filename) {
 		var img = new Image();
 		img.src = filename;
 		img.onload = function () {
-			this.filterCtx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
-			this.ctx.fillStyle = "rgb(0, 0, 0)";
-			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-			this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-			this.ctx.drawImage(this.filterCanvas, 0, 0, this.canvas.width, this.canvas.height);
-			this.toGrayscale();
-			this.handlePlay();
+			//this.ctx.fillStyle = "rgb(0, 0, 0)";
+			//this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			//this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+			this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+			this.setImageData();
 		}.bind(this);
 		this.img = img;
 	}
 
-	resize(w, h) {
-		this.canvas.width = w;
-		this.canvas.height = h;
-		this.filterCanvas.width = w;
-		this.filterCanvas.height = h;
-		this.filterCtx.drawImage(this.img, 0, 0, this.canvas.width, this.canvas.height);
-		this.ctx.drawImage(this.filterCanvas, 0, 0, this.canvas.width, this.canvas.height);
-		this.toGrayscale();
-	}
-
-	toGrayscale() {
-		//0.299r + 0.587g + 0.114b.
-		this.data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-		var imageData = this.data.data;
-		for (var i = 0; i < imageData.length; i += 4) {
-			var grey = imageData[i] * 0.299 + imageData[i + 1] * 0.587 + imageData[i + 2] * 0.114;
-			imageData[i] = grey;
-			// green
-			imageData[i + 1] = grey;
-			// blue
-			imageData[i + 2] = grey;
-		}
-		//  this.data.data = imageData;
-		this.ctx.putImageData(this.data, 0, 0);
-		this.filterCtx.putImageData(this.data, 0, 0);
-		this.imageData = imageData;
-
-		this.originalData = [];
-		for (var i = 0; i < imageData.length; i++) {
-			this.originalData[i] = imageData[i];
-		}
-		this.calculatePixels();
-	}
-
-	drawRepetitions() {
-		var rotation = 0 * Math.PI * 2;
-		var width = this.canvas.width / (1 + 0 * 5);
-		var height = this.canvas.height / (1 + 0 * 5);
-		var spacingX = (3 * 0.16 + 0.5) * width;
-		var spacingY = (3 * 0.16 + 0.5) * height;
-		var numCols = this.canvas.width / spacingX;
-		var numRows = this.canvas.height / spacingY;
-		var modCanvas = document.createElement("canvas");
-		modCanvas.width = width;
-		modCanvas.height = height;
-		var modCtx = modCanvas.getContext('2d');
-		modCtx.translate(width / 2, height / 2);
-		modCtx.rotate(rotation);
-		modCtx.drawImage(this.filterCanvas, -width / 2, -height / 2, width, height);
-		this.ctx.fillStyle = "rgb(0, 0, 0)";
-		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		this.ctx.globalCompositeOperation = "lighter";
-		for (var i = 0; i < numCols + 1; i++) {
-			for (var j = 0; j < numRows; j++) {
-				var xPos = i * spacingX - 0 * spacingX * j;
-				var yPos = j * spacingY - 0 * spacingY * i;
-
-				if (xPos <= -spacingX) xPos += this.canvas.width;
-				if (yPos <= -spacingY) yPos += this.canvas.height;
-				this.ctx.drawImage(modCanvas, xPos, yPos, width, height);
-			}
-		}
+	setImageData() {
 		this.data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
 		this.imageData = this.data.data;
-	}
-
-	invert() {
-		// imageData ;
-
-		for (var i = 0; i < this.imageData.length; i += 4) {
-			//red
-			this.imageData[i] = 255 - this.originalData[i];
-			// green
-			this.imageData[i + 1] = 255 - this.originalData[i + 1];
-			// blue
-			this.imageData[i + 2] = 255 - this.originalData[i + 2];
-		}
-		this.ctx.putImageData(this.data, 0, 0);
-		this.filterCtx.putImageData(this.data, 0, 0);
-		this.originalData = [];
-		for (var i = 0; i < this.data.data.length; i++) {
-			this.originalData[i] = this.data.data[i];
-		}
-		this.calculatePixels();
-	}
-
-	regenerateImage(){
-
-	}
-
-	calculatePixels() {
-		var contrast = 255 * 0.5 * 2 - 255;
-		var brightness = 255 * 0.5 * 2 - 255;
-		var factor = 259 * (contrast + 255) / (255 * (259 - contrast));
-		for (var i = 0; i < this.imageData.length; i += 4) {
-			// red
-			this.imageData[i] = factor * (this.originalData[i] + brightness - 128) + 128;
-			this.imageData[i + 1] = factor * (this.originalData[i + 1] + brightness - 128) + 128;
-			this.imageData[i + 2] = factor * (this.originalData[i + 2] + brightness - 128) + 128;
-		}
-		this.ctx.putImageData(this.data, 0, 0);
-		this.filterCtx.putImageData(this.data, 0, 0);
-		this.drawRepetitions();
 	}
 }
 
