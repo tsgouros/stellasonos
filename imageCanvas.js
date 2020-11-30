@@ -25,9 +25,6 @@ class ImageCanvas {
 		var img = new Image();
 		img.src = filename;
 		img.onload = function () {
-			//this.ctx.fillStyle = "rgb(0, 0, 0)";
-			//this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-			//this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 			this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
 			this.setImageData();
 		}.bind(this);

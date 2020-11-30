@@ -16,8 +16,6 @@ var settings = {
   }
 };
 
-const numSteps = 100
-
 var synthObj = {};
 
 var lastTime = 0;
