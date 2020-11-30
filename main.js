@@ -2,14 +2,9 @@
 //squares
 
 import Synthesizer from './synthesizer.js';
-import ScaleMaker  from 'scale-maker';
 import ImageCanvas from './imageCanvas.js';
 var synth, imageCanvas;
-//squares
-
-var prevTime, data;
 var colPos = 0;
-var isPlaying = true;
 
 var settings = {
   brightness: 0.5,
@@ -51,12 +46,22 @@ var synthObj = {};
 
 var lastTime = 0;
 var scaleFrequencies;
-var playheadCanvas, imageData, ctx, playheadCtx, compressor, ongoingTouches, mouse, touchObject, audioCtx, backgroundColor, oscillators;
-var requestId, startTime;
-window.AudioContext = window.AudioContext || window.webkitAudioContext;
+var playheadCanvas, imageData, playheadCtx;
+var requestId;
 
 window.onload = function () {
-  init();
+  imageCanvas = new ImageCanvas(handlePlay);
+  playheadCanvas = document.createElement("canvas");
+  playheadCanvas.width = window.innerWidth;
+  playheadCanvas.height = window.innerHeight;
+  playheadCanvas.style.position = "fixed";
+  playheadCanvas.style.top = "0px";
+  playheadCanvas.style.left = "0px";
+  playheadCtx = playheadCanvas.getContext('2d');
+
+	synth = new Synthesizer();
+  document.body.appendChild(playheadCanvas);
+  setEventHandlers();
 };
 
 function requestNextAnimationFrame (callback, element) {
@@ -69,83 +74,20 @@ function requestNextAnimationFrame (callback, element) {
 };
 
 function handlePlay() {
-  prevTime = audioCtx.currentTime;
+  synth.resumeAudioContext();
   settings.play = true;
-  
-  if (audioCtx.resume) {
-    audioCtx.resume();
-  }
-}
-
-function regenerateSynth() {
-  synth.endSynth();
-  var note = settings.scale.note + "" + settings.scale.octave;
-  scaleFrequencies = ScaleMaker.makeScale(settings.scale.type, note, parseInt(settings.scale.numSteps)).inHertz;
-  synth = new Synthesizer(scaleFrequencies, compressor, audioCtx);
-}
-
-function handleStop() {
-  settings.play = false;
-  if (audioCtx.suspend) {
-    audioCtx.suspend();
-  } else {
-    var gainVals = [];
-    for (var i = 0; i < settings.scale.numSteps; i++) {
-      gainVals[i] = 0;
-    }
-    synth.updateGains(gainVals);
-    cancelAnimationFrame(requestId);
-  }
-}
-
-function init() {
-  document.body.removeChild(document.getElementById("landing"));
-  ongoingTouches = new Array();
-
-  touchObject = {};
-  oscillators = {};
-
-  imageCanvas = new ImageCanvas(settings, handlePlay);
-  playheadCanvas = document.createElement("canvas");
-  playheadCanvas.width = window.innerWidth;
-  playheadCanvas.height = window.innerHeight;
-  playheadCanvas.style.position = "fixed";
-  playheadCanvas.style.top = "0px";
-  playheadCanvas.style.left = "0px";
-  playheadCtx = playheadCanvas.getContext('2d');
-  backgroundColor = "rgba(242, 35, 12, 0.1)";
-
-  initAudioCtx();
-  audioCtx.resume();
-
-  document.body.appendChild(playheadCanvas);
-  setEventHandlers();
 }
 
 function setEventHandlers() {
-  playheadCanvas.addEventListener("touchstart", handleTouchStart, false);
-  playheadCanvas.addEventListener("touchend", handleTouchEnd, false);
-  playheadCanvas.addEventListener("touchcancel", handleTouchCancel, false);
-  playheadCanvas.addEventListener("touchmove", handleTouchMove, false);
-  playheadCanvas.addEventListener("mousedown", handleMouseStart, false);
-  playheadCanvas.addEventListener("mousemove", handleMouseMove, false);
-  playheadCanvas.addEventListener("mouseup", handleMouseUp, false);
-  playheadCanvas.addEventListener("mouseout", handleMouseUp, false);
-  playheadCanvas.addEventListener("mouseleave", handleMouseUp, false);
+  playheadCanvas.addEventListener("touchstart", handleTouch, false);
+  playheadCanvas.addEventListener("touchmove", handleTouch, false);
+  playheadCanvas.addEventListener("mousedown", handleMouse, false);
+  playheadCanvas.addEventListener("mousemove", handleMouse, false);
   window.addEventListener("resize", onResize);
 }
 
-function initAudioCtx() {
-	audioCtx = new window.AudioContext();
-	compressor = audioCtx.createDynamicsCompressor();
-	compressor.connect(audioCtx.destination);
-	scaleFrequencies = ScaleMaker.makeScale(settings.scale.type, 'C3', settings.scale.numSteps).inHertz;
-	synth = new Synthesizer(scaleFrequencies, compressor, audioCtx);
-}
-
 function nextStep() {
-  //var col = Math.floor(audioCtx.currentTime*settings.speed);
-  var step = Math.floor((audioCtx.currentTime - prevTime) * (settings.speed * 400 - 200));
+  var step = Math.floor((synth.getCurrTime() - synth.getPrevTime()) * (settings.speed * 400 - 200));
   var col = colPos + step;
   if (col >= imageCanvas.canvas.width) {
     while (col >= imageCanvas.canvas.width) {
@@ -170,27 +112,16 @@ function nextStep() {
     gainVals[i] = val;
   }
   synth.updateGains(gainVals);
-  prevTime = audioCtx.currentTime;
 }
 
-function handleMouseStart(e) {
-  audioCtx.resume();
+function handleMouse(e) {
+  synth.resumeAudioContext();
   colPos = e.pageX;
   requestId = requestNextAnimationFrame(nextStep);
 }
 
-function handleMouseMove(e) {
-  audioCtx.resume();
-  colPos = e.pageX;
-  requestId = requestNextAnimationFrame(nextStep);
-}
-
-function handleMouseUp() {
-	audioCtx.resume();
-}
-
-function handleTouchStart(e) {
-  audioCtx.resume();
+function handleTouch(e) {
+  synth.resumeAudioContext();
   var touches = e.changedTouches;
   if (e.touches != undefined) {
 	colPos = e.touches[0].pageX;
@@ -203,12 +134,3 @@ function onResize() {
   playheadCanvas.width = window.innerWidth;
   playheadCanvas.height = window.innerHeight;
 }
-
-function handleTouchMove(e) {
-	audioCtx.resume();
-}
-
-function handleTouchEnd(e) {
-}
-
-function handleTouchCancel(e) {}

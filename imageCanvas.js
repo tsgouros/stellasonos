@@ -1,5 +1,5 @@
 class ImageCanvas {
-	constructor(settings, handlePlay){
+	constructor(handlePlay){
 		//output canvas
 		this.canvas = document.createElement("canvas");
 		this.canvas.width = window.innerWidth;
@@ -7,7 +7,6 @@ class ImageCanvas {
 		this.canvas.style.position = "fixed";
 		this.canvas.style.top = "0px";
 		this.canvas.style.left = "0px";
-		this.settings = settings;
 		this.handlePlay = handlePlay;
 
 		//filtered image
@@ -15,9 +14,9 @@ class ImageCanvas {
 		this.filterCanvas.width = window.innerWidth;
 		this.filterCanvas.height = window.innerHeight;
 		this.filterCtx = this.filterCanvas.getContext('2d');
+
 		this.ctx = this.canvas.getContext('2d');
 		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		//this.ctx = ctx;
 		document.body.appendChild(this.canvas);
 		this.loadImage("./images/nightsky.jpg");
 	}
@@ -29,7 +28,6 @@ class ImageCanvas {
 		this.filterCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		this.ctx.fillStyle = "rgb(0, 0, 0)";
 		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		//var data = [];
 		this.data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
 		//Data of what is currently being displayed
 		this.imageData = this.data.data;
@@ -50,7 +48,7 @@ class ImageCanvas {
 			this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 			this.ctx.drawImage(this.filterCanvas, 0, 0, this.canvas.width, this.canvas.height);
 			this.toGrayscale();
-			if (this.settings.play) this.handlePlay();
+			this.handlePlay();
 		}.bind(this);
 		this.img = img;
 	}
@@ -86,20 +84,15 @@ class ImageCanvas {
 		for (var i = 0; i < imageData.length; i++) {
 			this.originalData[i] = imageData[i];
 		}
-		// this.ctx.putImageData(this.data, 0, 0);
-		if (this.settings.invert) {
-			this.invert();
-		} else {
-			this.calculatePixels();
-		}
+		this.calculatePixels();
 	}
 
 	drawRepetitions() {
-		var rotation = this.settings.rotation * Math.PI * 2;
-		var width = this.canvas.width / (1 + this.settings.repetitions.x * 5);
-		var height = this.canvas.height / (1 + this.settings.repetitions.y * 5);
-		var spacingX = (3 * this.settings.spacing.x + 0.5) * width;
-		var spacingY = (3 * this.settings.spacing.y + 0.5) * height;
+		var rotation = 0 * Math.PI * 2;
+		var width = this.canvas.width / (1 + 0 * 5);
+		var height = this.canvas.height / (1 + 0 * 5);
+		var spacingX = (3 * 0.16 + 0.5) * width;
+		var spacingY = (3 * 0.16 + 0.5) * height;
 		var numCols = this.canvas.width / spacingX;
 		var numRows = this.canvas.height / spacingY;
 		var modCanvas = document.createElement("canvas");
@@ -115,19 +108,16 @@ class ImageCanvas {
 		this.ctx.globalCompositeOperation = "lighter";
 		for (var i = 0; i < numCols + 1; i++) {
 			for (var j = 0; j < numRows; j++) {
-				var xPos = i * spacingX - this.settings.offset.x * spacingX * j;
-				var yPos = j * spacingY - this.settings.offset.y * spacingY * i;
+				var xPos = i * spacingX - 0 * spacingX * j;
+				var yPos = j * spacingY - 0 * spacingY * i;
 
 				if (xPos <= -spacingX) xPos += this.canvas.width;
 				if (yPos <= -spacingY) yPos += this.canvas.height;
-				//if(xPos > this.canvas.width) xPos -= this.canvas.width;
 				this.ctx.drawImage(modCanvas, xPos, yPos, width, height);
 			}
 		}
-		// this.ctx.drawImage(modCanvas, 0, 0, width, height);
 		this.data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
 		this.imageData = this.data.data;
-		//this.originalData = this.data.data.slice(0);
 	}
 
 	invert() {
@@ -155,9 +145,8 @@ class ImageCanvas {
 	}
 
 	calculatePixels() {
-		//var this.settings.contrast = e.value*255*2 -255;
-		var contrast = 255 * this.settings.contrast * 2 - 255;
-		var brightness = 255 * this.settings.brightness * 2 - 255;
+		var contrast = 255 * 0.5 * 2 - 255;
+		var brightness = 255 * 0.5 * 2 - 255;
 		var factor = 259 * (contrast + 255) / (255 * (259 - contrast));
 		for (var i = 0; i < this.imageData.length; i += 4) {
 			// red
