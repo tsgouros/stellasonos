@@ -109,8 +109,6 @@ function handleMouse(e) {
 
 function handleTouch(e) {
   synth.resumeAudioContext();
-  var touches = e.changedTouches;
-  if (e.touches != undefined) {
 	colPos = e.touches[0].pageX;
 	requestId = requestNextAnimationFrame(sonifyColumn);
   }
