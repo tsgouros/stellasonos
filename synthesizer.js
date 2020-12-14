@@ -3,7 +3,7 @@ import ScaleMaker  from 'scale-maker';
 //responsible for all things audio
 class Synthesizer {
 	constructor(){
-		this.frequencies = ScaleMaker.makeScale('chromatic', 'C3', 100).inHertz;
+		this.frequencies = ScaleMaker.makeScale('melodicMinor', 'C3', 100).inHertz;
 		this.ctx = new AudioContext();
 		this.compressor = this.ctx.createDynamicsCompressor();
 		this.compressor.connect(this.ctx.destination);
@@ -36,11 +36,11 @@ class Synthesizer {
 
 	updateGains(gainVals) {
 		for (var i = 0; i < gainVals.length; i++) {
-			if (this.oscillators[i].val != gainVals[i]) {
-				this.oscillators[i].val = gainVals[i];
-				this.oscillators[i].gain.gain.cancelScheduledValues(this.ctx.currentTime);
-				this.oscillators[i].gain.gain.linearRampToValueAtTime(gainVals[i], this.ctx.currentTime + 0.1);
-			}
+			this.oscillators[i%100].gain.gain.cancelScheduledValues(this.ctx.currentTime);
+		}
+		for (var i = 0; i < gainVals.length; i++) {
+			this.oscillators[i%100].val = gainVals[i];
+			this.oscillators[i%100].gain.gain.linearRampToValueAtTime(gainVals[i], this.ctx.currentTime + (0.0000001 * i));			
 		}
 		this.prevTime = this.ctx.currentTime;
 	}

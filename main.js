@@ -70,16 +70,34 @@ function sonifyColumn() {
   updateSound(col);
 }
 
+function getGainValuesAndPaintIndicatorBar(row, col) {
+  var gainVals =[]
+  var prevRed = 0
+  var prevGreen = 0
+  var prevBlue = 0
+  do {
+    const index = (row * window.innerWidth + col) * 4; //gets index in image data array
+    const red = imageCanvas.imageData[index];
+    const green = imageCanvas.imageData[index + 1]
+    const blue = imageCanvas.imageData[index + 2]
+    const averageIntensity = (imageCanvas.imageData[index]+imageCanvas.imageData[index+1]+imageCanvas.imageData[index+2])/(255*3); //avg value rgb
+    if(red === prevRed && green === prevGreen && blue === prevBlue) {
+      gainVals[row] = 0
+    } else {
+      gainVals[row] = averageIntensity
+    }
+    playheadCanvas.paintVisualIndicationOfSonificationOnDisplayBar(col, row, averageIntensity);
+    row = row + 1;
+    prevRed = red;
+    prevGreen = green;
+    prevBlue = blue;
+  } while(row < window.innerHeight);
+  return gainVals;
+}
+
 //basically sonifying based on color intensity
 function updateSound(col) {
-  var gainVals = [];
-  for (var i = 0; i < settings.scale.numSteps; i++) {
-    var row = Math.floor((i + 0.5) * window.innerHeight / settings.scale.numSteps);
-    var off = (row * window.innerWidth + col) * 4; //gets index in image data array
-    var val = (imageCanvas.imageData[off]+imageCanvas.imageData[off+1]+imageCanvas.imageData[off+2])/(255*3); //avg value rgb
-    playheadCanvas.paintVisualIndicationOfSonificationOnDisplayBar(col, row, val);
-    gainVals[i] = val;
-  }
+  var gainVals = getGainValuesAndPaintIndicatorBar(0, col)
   synth.updateGains(gainVals);
 }
 
