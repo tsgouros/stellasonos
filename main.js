@@ -109,7 +109,7 @@ function getGainValuesAndPaintIndicatorBar(col) {
     }
     row = row + 1;
   }
-  console.log(sonificationInfo)
+  //console.log(sonificationInfo)
   return gainVals;
 }
 
@@ -128,6 +128,9 @@ function handleMouse(e) {
 function handleTouch(e) {
   console.log("touch registered")
   synth.resumeAudioContext();
-	colPos = e.touches[0].pageX;
-	requestId = requestNextAnimationFrame(sonifyColumn);
+	var touches = e.changedTouches;
+  if (e.touches != undefined) {
+	  colPos = e.touches[0].pageX;
+	  requestId = requestNextAnimationFrame(sonifyColumn);
+  }
 }
