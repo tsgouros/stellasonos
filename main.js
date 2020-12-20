@@ -111,7 +111,7 @@ function getGainValuesAndPaintIndicatorBar(col) {
     }
     row = row + 1;
   }
-  //console.log(sonificationInfo)
+  console.log(sonificationInfo)
   return gainVals;
 }
 
