@@ -17,8 +17,6 @@ class PlayheadCanvas {
     }
 
     addEventHandler(name, func) {
-        console.log(name);
-        console.log(func);
         this.canvas.addEventListener(name, func, false);
     }
 
