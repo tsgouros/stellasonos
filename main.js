@@ -25,7 +25,8 @@ var requestId;
 window.onload = function () {
   imageCanvas = new ImageCanvas();
   playheadCanvas = new PlayheadCanvas();
-	synth = new Synthesizer();
+  synth = new Synthesizer();
+  console.log("hello")
   setEventHandlers();
   handlePlay();
 };
