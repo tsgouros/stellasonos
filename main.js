@@ -70,34 +70,52 @@ function sonifyColumn() {
   updateSound(col);
 }
 
-function getGainValuesAndPaintIndicatorBar(row, col) {
+function getGainValuesAndPaintIndicatorBar(col) {
   var gainVals =[]
-  var prevRed = 0
-  var prevGreen = 0
-  var prevBlue = 0
-  do {
+  var sonificationInfo = []
+
+  var row = 0
+  var sonificationDataIndex = 0;
+  while(row < window.innerHeight){
     const index = (row * window.innerWidth + col) * 4; //gets index in image data array
     const red = imageCanvas.imageData[index];
     const green = imageCanvas.imageData[index + 1]
     const blue = imageCanvas.imageData[index + 2]
+    
     const averageIntensity = (imageCanvas.imageData[index]+imageCanvas.imageData[index+1]+imageCanvas.imageData[index+2])/(255*3); //avg value rgb
-    if(red === prevRed && green === prevGreen && blue === prevBlue) {
-      gainVals[row] = 0
-    } else {
-      gainVals[row] = averageIntensity
-    }
     playheadCanvas.paintVisualIndicationOfSonificationOnDisplayBar(col, row, averageIntensity);
+
+    if(averageIntensity != 0) {
+      if(!sonificationInfo[sonificationDataIndex]) {
+        sonificationInfo[sonificationDataIndex] = {
+          startRow: row,
+          endRow: row,
+          red: red,
+          green: green,
+          blue: blue,
+        }
+      } else {
+        sonificationInfo[sonificationDataIndex].endRow = row
+        sonificationInfo[sonificationDataIndex].red += red
+        sonificationInfo[sonificationDataIndex].green += green
+        sonificationInfo[sonificationDataIndex].blue += blue
+      }
+    } else if(sonificationInfo[sonificationDataIndex]){
+      var totalSize = sonificationInfo[sonificationDataIndex].endRow - sonificationInfo[sonificationDataIndex].startRow + 1
+      sonificationInfo[sonificationDataIndex].red = sonificationInfo[sonificationDataIndex].red/totalSize
+      sonificationInfo[sonificationDataIndex].green = sonificationInfo[sonificationDataIndex].green/totalSize
+      sonificationInfo[sonificationDataIndex].blue = sonificationInfo[sonificationDataIndex].blue/totalSize
+      sonificationDataIndex = sonificationDataIndex + 1
+    }
     row = row + 1;
-    prevRed = red;
-    prevGreen = green;
-    prevBlue = blue;
-  } while(row < window.innerHeight);
+  }
+  console.log(sonificationInfo)
   return gainVals;
 }
 
 //basically sonifying based on color intensity
 function updateSound(col) {
-  var gainVals = getGainValuesAndPaintIndicatorBar(0, col)
+  var gainVals = getGainValuesAndPaintIndicatorBar(col)
   synth.updateGains(gainVals);
 }
 
@@ -108,8 +126,8 @@ function handleMouse(e) {
 }
 
 function handleTouch(e) {
+  console.log("touch registered")
   synth.resumeAudioContext();
 	colPos = e.touches[0].pageX;
 	requestId = requestNextAnimationFrame(sonifyColumn);
-  }
 }
