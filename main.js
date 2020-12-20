@@ -23,10 +23,11 @@ var playheadCanvas;
 var requestId;
 
 window.onload = function () {
+  console.log("hello")
+
   imageCanvas = new ImageCanvas();
   playheadCanvas = new PlayheadCanvas();
   synth = new Synthesizer();
-  console.log("hello")
   setEventHandlers();
   handlePlay();
 };
