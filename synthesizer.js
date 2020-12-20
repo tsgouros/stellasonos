@@ -4,7 +4,10 @@ import ScaleMaker  from 'scale-maker';
 class Synthesizer {
 	constructor(){
 		this.frequencies = ScaleMaker.makeScale('melodicMinor', 'C3', 100).inHertz;
-		this.ctx = new(window.AudioContext || window.webkitAudioContext);
+		var AudioContext = window.AudioContext // Default
+    						|| window.webkitAudioContext // Safari and old versions of Chrome
+    						|| false; 
+		this.ctx = new AudioContext;
 		this.compressor = this.ctx.createDynamicsCompressor();
 		this.compressor.connect(this.ctx.destination);
 		this.prevTime = 0;
