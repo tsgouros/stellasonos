@@ -7,6 +7,7 @@ import PlayheadCanvas from './playheadCanvas.js';
 
 var synth, imageCanvas;
 var colPos = 0;
+var rowPos = 0;
 
 var settings = {
   play: true,
@@ -23,8 +24,6 @@ var playheadCanvas;
 var requestId;
 
 window.onload = function () {
-  console.log("hello")
-
   imageCanvas = new ImageCanvas();
   playheadCanvas = new PlayheadCanvas();
   synth = new Synthesizer();
@@ -95,6 +94,7 @@ function getGainValuesAndPaintIndicatorBar(col) {
           red: red,
           green: green,
           blue: blue,
+          fingerLocation: rowPos
         }
       } else {
         sonificationInfo[sonificationDataIndex].endRow = row
@@ -124,15 +124,16 @@ function updateSound(col) {
 function handleMouse(e) {
   synth.resumeAudioContext();
   colPos = e.pageX;
+  rowPos = e.pageY;
   requestId = requestNextAnimationFrame(sonifyColumn);
 }
 
 function handleTouch(e) {
-  console.log("touch registered")
   synth.resumeAudioContext();
 	var touches = e.changedTouches;
   if (e.touches != undefined) {
-	  colPos = e.touches[0].pageX;
+    colPos = e.touches[0].pageX;
+    rowPos = e.touches[0].pageY;
 	  requestId = requestNextAnimationFrame(sonifyColumn);
   }
 }
