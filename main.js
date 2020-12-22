@@ -71,22 +71,45 @@ function sonifyColumn() {
   updateSound(col);
 }
 
-function getGainValuesAndPaintIndicatorBar(col) {
-  var gainVals =[]
+function getRGBColorsOfPixelAt(row, col) {
+  const index = (row * window.innerWidth + col) * 4; //gets index in image data array
+
+  const red = imageCanvas.imageData[index];
+  const green = imageCanvas.imageData[index + 1]
+  const blue = imageCanvas.imageData[index + 2]
+
+  return [red, green, blue];
+}
+
+function getAverageIntensity(rgbColorArray) {
+  const [red, green, blue] = rgbColorArray;
+  return (red+green+blue)/(255*3);
+}
+
+function colorColumn(col) {
+  var row = 0;
+  while(row < window.innerHeight){    
+    const averageIntensity = getAverageIntensity(getRGBColorsOfPixelAt(row, col));
+    playheadCanvas.paintVisualIndicationOfSonificationOnDisplayBar(col, row, averageIntensity);
+    row++;
+  }
+}
+
+function isValidPixel(rgbColorArray) {
+  return getAverageIntensity(rgbColorArray) > 0;
+}
+
+function getSonificationInfo(col) {
   var sonificationInfo = []
 
   var row = 0
   var sonificationDataIndex = 0;
+  
   while(row < window.innerHeight){
-    const index = (row * window.innerWidth + col) * 4; //gets index in image data array
-    const red = imageCanvas.imageData[index];
-    const green = imageCanvas.imageData[index + 1]
-    const blue = imageCanvas.imageData[index + 2]
-    
-    const averageIntensity = (imageCanvas.imageData[index]+imageCanvas.imageData[index+1]+imageCanvas.imageData[index+2])/(255*3); //avg value rgb
-    playheadCanvas.paintVisualIndicationOfSonificationOnDisplayBar(col, row, averageIntensity);
 
-    if(averageIntensity != 0) {
+    const rgbColorArray = getRGBColorsOfPixelAt(row, col)
+    const [red, green, blue] = rgbColorArray;
+    if(isValidPixel(rgbColorArray)) {
       if(!sonificationInfo[sonificationDataIndex]) {
         sonificationInfo[sonificationDataIndex] = {
           startRow: row,
@@ -111,14 +134,43 @@ function getGainValuesAndPaintIndicatorBar(col) {
     }
     row = row + 1;
   }
-  console.log(sonificationInfo)
-  return gainVals;
+
+  return sonificationInfo;
 }
 
-//basically sonifying based on color intensity
+/*
+  TODO: uses an array of sonificationInfo-- e.g...
+    [
+      {
+          startRow: int, 
+          endRow: int,
+          red: int (0-255),
+          green: int (0-255),
+          blue: int (0-255),
+          fingerLocation: int (representing row)
+      },
+      {
+          startRow: int, 
+          endRow: int,
+          red: int (0-255),
+          green: int (0-255),
+          blue: int (0-255),
+          fingerLocation: int (representing row)
+      },
+      ....
+    ]
+
+  and returns an array of gain values (array of ints)
+*/
+function getGainValues(sonificationInfo) {
+}
+
 function updateSound(col) {
-  var gainVals = getGainValuesAndPaintIndicatorBar(col)
-  synth.updateGains(gainVals);
+  colorColumn(col)
+  const sonificationInfo = getSonificationInfo(col)
+  console.log(sonificationInfo)
+  /*TODO: implement getGainValues then uncomment below line
+  synth.updateGains(getGainValues(sonificationInfo));*/
 }
 
 function handleMouse(e) {
