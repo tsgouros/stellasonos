@@ -1,32 +1,21 @@
 import ScaleMaker  from 'scale-maker';
+import * as Tone from 'tone';
 
 //responsible for all things audio
 class Synthesizer {
 	constructor(){
-		this.frequencies = ScaleMaker.makeScale('melodicMinor', 'C3', 100).inHertz;
-		var AudioContext = window.AudioContext // Default
-    						|| window.webkitAudioContext // Safari and old versions of Chrome
-    						|| false; 
-		this.ctx = new AudioContext;
-		this.compressor = this.ctx.createDynamicsCompressor();
-		this.compressor.connect(this.ctx.destination);
+		this.frequencies = ScaleMaker.makeScale('melodicMinor', 'C3', 20).inHertz;
 		this.prevTime = 0;
-		this.oscillators = this.frequencies.map((frequency, i) => {
-			var osc = this.ctx.createOscillator();
-			osc.type = 'sine';
-			var gain = this.ctx.createGain();
-			gain.connect(this.compressor);
-			gain.gain.value = 0.0;
-			osc.connect(gain);
-			osc.frequency.value = this.frequencies[this.frequencies.length - 1 - i];
-			osc.start(this.ctx.currentTime);
-			return { osc: osc, gain: gain, val: 0 };
-		})
+
+		//audio data array, {frequency: int representing hertz, length: in seconds volume , volume}
+		this.previousAudio = []
+		this.currentAudio = []
+		this.synth = new Tone.Synth().toDestination();
 	}
 
 	resumeAudioContext() {
-		this.ctx.resume();
-		this.prevTime = this.ctx.currentTime;
+		Tone.start();
+		this.prevTime = this.synth.context.currentTime;
 	}
 
 	getPrevTime() {
@@ -34,18 +23,55 @@ class Synthesizer {
 	}
 
 	getCurrTime() {
-		return this.ctx.currentTime;
+		return this.synth.context.currentTime;
 	}
 
-	updateGains(gainVals) {
-		for (var i = 0; i < gainVals.length; i++) {
-			this.oscillators[i%100].gain.gain.cancelScheduledValues(this.ctx.currentTime);
+	/*
+	sonificationData -- object of structure
+		{
+			startRow: int, 
+			endRow: int,
+			red: int (0-255),
+			green: int (0-255),
+			blue: int (0-255),
+			fingerLocation: int (representing row)
+		},
+		....
+
+		volume = startRow - endRow
+		frequency = (startRow - endRow) / 2
+		envelope/attack, release = abs(fingerLocation - (startRow - endRow/2))
+
+	returns--
+		object with {frequency: int representing hertz, length: in seconds}
+	*/
+	getNote(sonificationData) {
+		const length = ~~(Math.abs(sonificationData.endRow - sonificationData.startRow));
+		const center = ~~(length/2 + sonificationData.startRow);
+		return {
+			volume: length,
+			frequency: this.frequencies[center % this.frequencies.length],
+			duration: Math.abs(center - sonificationData.fingerLocation)
 		}
-		for (var i = 0; i < gainVals.length; i++) {
-			this.oscillators[i%100].val = gainVals[i];
-			this.oscillators[i%100].gain.gain.linearRampToValueAtTime(gainVals[i], this.ctx.currentTime + (0.0000001 * i));			
-		}
-		this.prevTime = this.ctx.currentTime;
+	}
+	
+
+	playAudio(sonificationData) {
+		this.previousAudio = this.currentAudio
+		this.currentAudio = sonificationData.map(data => this.getNote(data))
+		var startTime = 0;
+		
+		const totalLength = this.currentAudio.map(audioInfo => audioInfo.duration).reduce((duration, currDuration) => {
+			return duration + currDuration;
+		})
+
+		Tone.Transport.cancel(0);
+		this.currentAudio.forEach(audioData => {
+			const duration = (audioData.duration/totalLength);
+			this.synth.triggerAttack(audioData.frequency, duration, startTime)
+			startTime = startTime + duration;
+		})
+		this.prevTime = this.getCurrTime()
 	}
 }
 
