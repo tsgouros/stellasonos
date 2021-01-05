@@ -59,14 +59,8 @@ class Synthesizer {
 	playAudio(sonificationData) {
 		this.previousAudio = this.currentAudio
 		this.currentAudio = sonificationData.map(data => this.getNote(data))
-		var startTime = 0;
-		
-		const totalLength = this.currentAudio.map(audioInfo => audioInfo.duration).reduce((duration, currDuration) => {
-			return duration + currDuration;
-		})
 
 		Tone.Transport.cancel(0);
-		const now = Tone.now()
 		this.currentAudio.forEach(audioData => {
 			this.synth.triggerAttackRelease(audioData.frequency, (audioData.duration % 60) / 60.0)
 		})
