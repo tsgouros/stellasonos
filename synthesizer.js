@@ -68,7 +68,6 @@ class Synthesizer {
 		Tone.Transport.cancel(0);
 		const now = Tone.now()
 		this.currentAudio.forEach(audioData => {
-			this.synth.volume.value = audioData.volume;
 			this.synth.triggerAttackRelease(audioData.frequency, (audioData.duration % 60) / 60.0)
 		})
 		this.prevTime = this.getCurrTime()
