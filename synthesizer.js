@@ -4,13 +4,17 @@ import * as Tone from 'tone';
 //responsible for all things audio
 class Synthesizer {
 	constructor(){
-		this.frequencies = ScaleMaker.makeScale('melodicMinor', 'C3', 20).inHertz;
 		this.prevTime = 0;
+
+		this.frequencies = ScaleMaker.makeScale('melodicMinor', 'C3', window.innerHeight).inHertz;
+
 
 		//audio data array, {frequency: int representing hertz, length: in seconds volume , volume}
 		this.previousAudio = []
 		this.currentAudio = []
 		this.synth = new Tone.Synth().toDestination();
+		this.plucky = new Tone.PluckSynth().toDestination();
+
 	}
 
 	resumeAudioContext() {
@@ -45,24 +49,32 @@ class Synthesizer {
 	returns--
 		object with {frequency: int representing hertz, length: in seconds}
 	*/
-	getNote(sonificationData) {
+	getNote(sonificationData, totalFeatureLength) {
 		const length = ~~(Math.abs(sonificationData.endRow - sonificationData.startRow));
 		const center = ~~(length/2 + sonificationData.startRow);
+		const height = window.innerHeight;
 		return {
 			volume: length,
-			frequency: this.frequencies[center % this.frequencies.length],
-			duration: Math.abs(center - sonificationData.fingerLocation)
+			frequency: this.frequencies[~~(window.innerHeight/(totalFeatureLength/length))],
+			duration: (length/height).toFixed(5)
 		}
 	}
 	
 
 	playAudio(sonificationData) {
 		this.previousAudio = this.currentAudio
-		this.currentAudio = sonificationData.map(data => this.getNote(data))
+		const reducer = (accumulator, currentValue) => accumulator + currentValue;
+		const totalFeatureLength = sonificationData.map(data => ~~(Math.abs(data.endRow - data.startRow))).reduce(reducer)
+		this.currentAudio = sonificationData.map(data => this.getNote(data, totalFeatureLength))
 
 		Tone.Transport.cancel(0);
 		this.currentAudio.forEach(audioData => {
-			this.synth.triggerAttackRelease(audioData.frequency, (audioData.duration % 60) / 60.0)
+			console.log("duration: " + audioData.duration)
+			console.log("frequency: " + audioData.frequency)
+			
+			if(audioData.duration > 0 && audioData.frequency) {
+				this.synth.triggerAttackRelease(audioData.frequency, audioData.duration)
+			}
 		})
 		this.prevTime = this.getCurrTime()
 	}
