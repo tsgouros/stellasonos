@@ -6,7 +6,7 @@ class Synthesizer {
 	constructor(){
 		this.prevTime = 0;
 
-		this.frequencies = ScaleMaker.makeScale('melodicMinor', 'C3', window.innerHeight).inHertz;
+		this.frequencies = ScaleMaker.makeScale('chromatic', 'C2', 36).inHertz;
 
 
 		//audio data array, {frequency: int representing hertz, length: in seconds volume , volume}
@@ -55,7 +55,7 @@ class Synthesizer {
 		const height = window.innerHeight;
 		return {
 			volume: length,
-			frequency: this.frequencies[~~(window.innerHeight/(totalFeatureLength/length))],
+			frequency: this.frequencies[~~(12 * Math.log10(height/length))],
 			duration: (length/height).toFixed(5)
 		}
 	}
